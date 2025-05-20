@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'maven-399'      // match with your Jenkins tool name
+        jdk 'JDK 11'             // match your Java version
+    }
+
+    environment {
+        // optional env vars
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git credentialsId: 'gitlab-ssh', url: 'git@gitlab-host:your-group/your-repo.git', branch: 'main'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Example: Copy JAR or WAR to a server and restart app
+                sh 'scp target/*.jar user@deploy-server:/opt/app/'
+                sh 'ssh user@deploy-server "systemctl restart your-app"'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build and deploy succeeded'
+        }
+        failure {
+            echo '❌ Build failed'
+        }
+    }
+}

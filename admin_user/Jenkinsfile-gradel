@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        GRADLE_OPTS = "-Dorg.gradle.daemon=false"
+    }
+
+    tools {
+        jdk 'jdk-17'        // Must be configured in Jenkins tools as 'jdk-17'
+        gradle 'gradle-8'   // Must be configured in Jenkins tools as 'gradle-8'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://your-git-repo-url.git', branch: 'main'  // Update URL/branch
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh './gradlew clean build'
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                sh './gradlew test'
+            }
+            post {
+                always {
+                    junit 'build/test-results/test/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh './gradlew assemble'
+            }
+        }
+
+        stage('Static Analysis (Optional)') {
+            steps {
+                sh './gradlew check' // includes linting, static checks if configured
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build completed successfully!'
+        }
+        failure {
+            echo '❌ Build failed. Check logs.'
+        }
+    }
+}

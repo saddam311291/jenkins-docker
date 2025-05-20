@@ -1,2 +1,40 @@
+
+docker-compose build
 docker compose up -d
+
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+docker exec f62be8d9fe0a sh -c "sed -i '/<passwordHash>.*<\/passwordHash>/d' /var/jenkins_home/config.xml"
+
+docker cp ./config.xml f62be8d9fe0a:/var/jenkins_home/config.xml
+
+docker restart f62be8d9fe0a
+
+docker exec f62be8d9fe0a mkdir -p /var/jenkins_home/users/admin
+docker cp ./admin_user/config.xml f62be8d9fe0a:/var/jenkins_home/users/admin/config.xml
+
+docker ps -a
+docker start jenkins
+
+docker network create ci-net
+docker run --name gitlab --network ci-net ...
+docker run --name jenkins --network ci-net ...
+
+docker exec -it jenkins bash
+
+docker cp ./jdk-17.0.12_linux-x64_bin.tar.gz jenkins:/opt/.
+docker cp ./jdk-21.0.6_linux-x64_bin.tar.gz jenkins:/opt/.
+docker exec -u 0 -it 059a5538d668 bash
+
+mkdir /opt/jdk21
+chown -R jenkins:jenkins /opt/jdk21
+exit
+- /var/run/docker.sock:/var/run/docker.sock is it active or not how can check it
+ls -l /var/run/docker.sock
+
+docker exec -u 0 -it 985ceae7d6c8 bash
+usermod -aG root jenkins
+chmod 666 /var/run/docker.sock
+chmod 777 /var/run/docker.sock
+
+
